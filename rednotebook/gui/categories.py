@@ -447,6 +447,7 @@ class CategoriesTreeView(object):
             <menuitem action="ChangeEntry"/>
             <menuitem action="AddEntry"/>
             <menuitem action="Delete"/>
+	    <menuitem action="ImportEntries"/>
         </popup>
         </ui>'''
             
@@ -470,6 +471,10 @@ class CategoriesTreeView(object):
             ('Delete', gtk.STOCK_DELETE, \
                 _('Delete this node'), \
                 None, None, self._on_delete_entry_clicked
+            ),
+            ('ImportEntries', gtk.STOCK_CONVERT, \
+                _('Import entries'), \
+                None, None, self._on_import_entries_clicked
             ),
             ])
 
@@ -510,6 +515,24 @@ class CategoriesTreeView(object):
     def _on_delete_entry_clicked(self, action):
         self.delete_selected_node()
         
+    def _on_import_entries_clicked(self, action):
+        iter = self.get_selected_node()
+        
+        dialog = self.main_window.import_dialog
+        
+        # Either nothing was selected -> show normal import_entries_dialog
+        if iter is None:
+            dialog.show_dialog()
+        # or a category was selected
+        elif self.node_on_top_level(iter):
+            category = self.get_iter_value(iter)
+            dialog.show_dialog(category=category)
+        # or an entry was selected
+        else:
+            parent_iter = self.tree_store.iter_parent(iter)
+            category = self.get_iter_value(parent_iter)
+            dialog.show_dialog(category=category)
+            
     
     def on_size_allocate(self, treeview, allocation, column, cell):
         '''
