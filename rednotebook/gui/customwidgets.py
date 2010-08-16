@@ -94,6 +94,18 @@ class CustomComboBoxEntry(object):
     def set_editable(self, editable):
         self.entry.set_editable(editable)
         
+class CustomTextView(object):
+    def __init__(self, text_view):
+        self.text_view = text_view
+        
+    def clear(self):
+        self.text_view.get_buffer().set_text('')
+        
+    def connect(self, *args, **kargs):
+        self.text_view.connect(*args, **kargs)
+        
+    def set_editable(self, editable):
+        self.text_view.set_editable(editable)
 
 class CustomListView(gtk.TreeView):
     def __init__(self):
@@ -157,6 +169,15 @@ class EntryDialog(gtk.MessageDialog):
     def get_value(self):
         return self.entry.get_text()
         
+class MessageBox(gtk.MessageDialog):
+     def __init__(self, parent, message):
+         gtk.MessageDialog.__init__(self, parent, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                                 gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, message)
+         self.set_default_response(gtk.RESPONSE_OK)
+         self.connect('response', self._handle_clicked)
+  
+     def _handle_clicked(self, *args):
+         self.destroy()
         
 class Calendar(gtk.Calendar):
     def __init__(self, week_numbers=False):
@@ -377,3 +398,4 @@ class Assistant(gtk.Assistant):
         self.set_page_title(page, _('Introduction'))
         self.set_page_type(page, gtk.ASSISTANT_PAGE_INTRO)
         self.set_page_complete(page, True)
+
