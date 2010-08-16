@@ -25,6 +25,7 @@ import urllib
 import urlparse
 import webbrowser
 import logging
+import string
 
 import gtk
 import gobject
@@ -47,7 +48,7 @@ from rednotebook.gui.menu import MainMenuBar
 from rednotebook.external.htmltextview import HtmlWindow
 from rednotebook.gui.options import OptionsManager
 from rednotebook.gui import customwidgets
-from rednotebook.gui.customwidgets import CustomComboBoxEntry, CustomListView, \
+from rednotebook.gui.customwidgets import CustomComboBoxEntry, CustomTextView, CustomListView, MessageBox, \
                                             get_button_width
 from rednotebook.gui.richtext import HtmlEditor
 from rednotebook.util import filesystem
@@ -118,11 +119,14 @@ class MainWindow(object):
         self.statusbar = Statusbar(self.builder.get_object('statusbar'))
         
         self.new_entry_dialog = NewEntryDialog(self)
+
+	self.import_dialog = ImportEntriesDialog(self)
         
         self.categories_tree_view = categories.CategoriesTreeView(self.builder.get_object(\
                                     'categories_tree_view'), self)
         
         self.new_entry_dialog.categories_tree_view = self.categories_tree_view
+        self.import_dialog.categories_tree_view = self.categories_tree_view
         
         self.back_one_day_button = self.builder.get_object('back_one_day_button')
         self.forward_one_day_button = self.builder.get_object('forward_one_day_button')
@@ -1089,8 +1093,86 @@ class NewEntryDialog(object):
         self.main_frame.cloud.update()
         
             
+class ImportEntriesDialog(object):
+    def __init__(self, main_frame):
+        dialog = main_frame.builder.get_object('import_entries_dialog')
+        self.dialog = dialog
+        
+        self.main_frame = main_frame
+        self.journal = self.main_frame.journal
+        self.categories_combo_box = CustomComboBoxEntry(main_frame.builder.get_object('import_dialog-categories_combo_box'))
+        self.entries = CustomTextView(main_frame.builder.get_object('import_dialog-entries'))
+	self.entries  
+        # Let the user finish a new category entry by hitting ENTER
+        def respond(widget):
+            if self._text_entered():
+                self.dialog.response(gtk.RESPONSE_OK)
+        #self.entries.entry.connect('activate', respond)
+        self.categories_combo_box.entry.connect('activate', respond)
+        
+        #self.categories_combo_box.connect('changed', self.on_category_changed)
+        #self.entries.connect('changed', self.on_entry_changed)
+        
+    #def on_category_changed(self, widget):
+    #    '''Show Tags in ComboBox when "Tags" is selected as category'''
+    #    if self.categories_combo_box.get_active_text().upper() == 'TAGS':
+    #        self.entries.set_entries(self.journal.tags)
+    #    elif self.new_entry_combo_box.liststore:
+    #        self.new_entry_combo_box.liststore.clear()
             
-            
+        # only make the entry submittable, if text has been entered
+    #    self.dialog.set_response_sensitive(gtk.RESPONSE_OK, self._text_entered())
+        
+    def on_entry_changed(self, widget):          
+        # only make the entry submittable, if text has been entered
+        self.dialog.set_response_sensitive(gtk.RESPONSE_OK, self._text_entered())
+             
+    def _text_entered(self):
+        return bool(self.categories_combo_box.get_active_text() and \
+                self.new_entry_combo_box.get_active_text())
+        
+    def show_dialog(self, category=''):
+        # Has to be first, because it may be populated later
+        self.entries.clear()
+        
+        # Show the list of categories even if adding a tag
+        self.categories_combo_box.set_entries(self.categories_tree_view.categories)
+        
+        if category:            
+            self.categories_combo_box.set_active_text(category)
+            # We already know the category so let's get the entry
+            self.entries.text_view.grab_focus()
+        else:
+            self.categories_combo_box.combo_box.grab_focus()
+        
+        response = self.dialog.run()
+        self.dialog.hide()
+        
+        if not response == gtk.RESPONSE_OK:
+            return
+        
+        category_name = self.categories_combo_box.get_active_text()
+        if not self.categories_tree_view.check_category(category_name):
+            return
+        
+        entry_text = self.entries.text_view.get_buffer().get_property("text")
+        entry_list = string.split(entry_text,"\n")
+
+	# Now go through the entries and add them
+        added = 0
+        ignored = 0
+        for e in entry_list:
+          if self.categories_tree_view.check_entry(e):
+            self.categories_tree_view.add_entry(category_name, e)
+            added = added + 1
+          else:
+            ignored = ignored + 1
+ 
+	#msgbox = MessageBox(self.dialog, entry_text)
+        #msgbox.show_all()	
+
+        # Update cloud
+        self.main_frame.cloud.update()
 
     
     
