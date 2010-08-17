@@ -1095,6 +1095,7 @@ class NewEntryDialog(object):
             
 class ImportEntriesDialog(object):
     def __init__(self, main_frame):
+        # declare some member variables
         dialog = main_frame.builder.get_object('import_entries_dialog')
         self.dialog = dialog
         
@@ -1102,7 +1103,8 @@ class ImportEntriesDialog(object):
         self.journal = self.main_frame.journal
         self.categories_combo_box = CustomComboBoxEntry(main_frame.builder.get_object('import_dialog-categories_combo_box'))
         self.entries = CustomTextView(main_frame.builder.get_object('import_dialog-entries'))
-	self.entries  
+	self.delimiters_combo_box = CustomComboBoxEntry(main_frame.builder.get_object('import_dialog-delimiter_combo_box'))
+
         # Let the user finish a new category entry by hitting ENTER
         def respond(widget):
             if self._text_entered():
@@ -1112,7 +1114,7 @@ class ImportEntriesDialog(object):
         
         #self.categories_combo_box.connect('changed', self.on_category_changed)
         #self.entries.connect('changed', self.on_entry_changed)
-        
+
     #def on_category_changed(self, widget):
     #    '''Show Tags in ComboBox when "Tags" is selected as category'''
     #    if self.categories_combo_box.get_active_text().upper() == 'TAGS':
@@ -1126,7 +1128,7 @@ class ImportEntriesDialog(object):
     def on_entry_changed(self, widget):          
         # only make the entry submittable, if text has been entered
         self.dialog.set_response_sensitive(gtk.RESPONSE_OK, self._text_entered())
-             
+
     def _text_entered(self):
         return bool(self.categories_combo_box.get_active_text() and \
                 self.new_entry_combo_box.get_active_text())
@@ -1137,6 +1139,9 @@ class ImportEntriesDialog(object):
         
         # Show the list of categories even if adding a tag
         self.categories_combo_box.set_entries(self.categories_tree_view.categories)
+        # Sgow a list of delimiter suggestions
+        delimiters = {'Linebreak': '\n', 'Comma': ',', 'Space' : ' '}
+        self.delimiters_combo_box.set_entries(delimiters.keys())
         
         if category:            
             self.categories_combo_box.set_active_text(category)
@@ -1154,9 +1159,14 @@ class ImportEntriesDialog(object):
         category_name = self.categories_combo_box.get_active_text()
         if not self.categories_tree_view.check_category(category_name):
             return
+
+        # Get delimiter
+        delimiter = self.delimiters_combo_box.get_active_text()
+	if not self.delimiters_combo_box.current_item_is_dirty():
+            delimiter = delimiters[delimiter]
         
         entry_text = self.entries.text_view.get_buffer().get_property("text")
-        entry_list = string.split(entry_text,"\n")
+        entry_list = string.split(entry_text,delimiter)
 
 	# Now go through the entries and add them
         added = 0
