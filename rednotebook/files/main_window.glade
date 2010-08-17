@@ -724,11 +724,27 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="padding">5</property>
             <property name="position">1</property>
           </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkLabel" id="delimiterLabel">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">&lt;b&gt;Delimiter&lt;/b&gt;</property>
+            <property name="use_markup">True</property>
+          </object>
+          <packing>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBoxEntry" id="import_dialog-delimiter_combo_box">
+            <property name="visible">True</property>
+          </object>
+          <packing>
+            <property name="position">3</property>
+          </packing>
         </child>
         <child internal-child="action_area">
           <object class="GtkHButtonBox" id="import_dialog-action_area1">
@@ -781,8 +797,8 @@
     <property name="title" translatable="yes">Select backup filename</property>
     <property name="window_position">center-on-parent</property>
     <property name="type_hint">dialog</property>
-    <property name="action">save</property>
     <property name="do_overwrite_confirmation">True</property>
+    <property name="action">save</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox4">
         <property name="visible">True</property>
