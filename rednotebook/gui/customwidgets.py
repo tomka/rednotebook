@@ -63,7 +63,7 @@ class CustomComboBoxEntry(object):
         self.entry_completion.set_minimum_key_length(1)
         self.entry_completion.set_text_column(0)
         self.entry.set_completion(self.entry_completion)
-        
+
     def add_entry(self, entry):
         self.liststore.append([entry])
     
@@ -93,6 +93,9 @@ class CustomComboBoxEntry(object):
         
     def set_editable(self, editable):
         self.entry.set_editable(editable)
+
+    def current_item_is_dirty(self):
+        return self.combo_box.get_active() == -1
         
 class CustomTextView(object):
     def __init__(self, text_view):
